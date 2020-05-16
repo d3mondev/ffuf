@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+	"math/rand"
 
 	"github.com/ffuf/ffuf/pkg/ffuf"
 )
@@ -97,9 +98,16 @@ func (r *SimpleRunner) Execute(req *ffuf.Request) (ffuf.Response, error) {
 		return ffuf.Response{}, err
 	}
 
-	// set default User-Agent header if not present
+	// set User-Agent header if not present
 	if _, ok := req.Headers["User-Agent"]; !ok {
-		req.Headers["User-Agent"] = fmt.Sprintf("%s v%s", "Fuzz Faster U Fool", ffuf.VERSION)
+		userAgentCount := len(r.config.UserAgents)
+		if (userAgentCount > 0) {
+			// set a random User-Agent header from list provided
+			req.Headers["User-Agent"] = r.config.UserAgents[rand.Intn(userAgentCount)]
+		} else {
+			// set default User-Agent header if no custom user agent strings are specified
+			req.Headers["User-Agent"] = fmt.Sprintf("%s v%s", "Fuzz Faster U Fool", ffuf.VERSION)
+		}
 	}
 
 	// Handle Go http.Request special cases

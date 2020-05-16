@@ -40,6 +40,7 @@ type cliOptions struct {
 	requestProto           string
 	URL                    string
 	outputFormat           string
+	useragents             string
 	ignoreBody             bool
 	wordlists              multiStringFlag
 	inputcommands          multiStringFlag
@@ -92,6 +93,7 @@ func main() {
 	flag.BoolVar(&ignored, "i", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.Var(&opts.cookies, "b", "Cookie data `\"NAME1=VALUE1; NAME2=VALUE2\"` for copy as curl functionality.")
 	flag.Var(&opts.cookies, "cookie", "Cookie data (alias of -b)")
+	flag.StringVar(&opts.useragents, "rua", "", "File containing a list of User-Agent strings to choose from randomly for each request")
 	flag.StringVar(&opts.matcherStatus, "mc", "200,204,301,302,307,401,403", "Match HTTP status codes, or \"all\" for everything.")
 	flag.StringVar(&opts.matcherSize, "ms", "", "Match HTTP response size")
 	flag.StringVar(&opts.matcherRegexp, "mr", "", "Match regexp")
@@ -371,6 +373,21 @@ func prepareConfig(parseOpts *cliOptions, conf *ffuf.Config) error {
 	//Prepare URL
 	if parseOpts.URL != "" {
 		conf.Url = parseOpts.URL
+	}
+
+	//Prepare list of useragents
+	if parseOpts.useragents != "" {
+		file, err := os.Open(parseOpts.useragents)
+		if err != nil {
+			errmsg := fmt.Sprintf("unable to open user agents file: %s", err)
+			errs.Add(fmt.Errorf(errmsg))
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			conf.UserAgents = append(conf.UserAgents, scanner.Text())
+		}
 	}
 
 	//Prepare headers and make canonical

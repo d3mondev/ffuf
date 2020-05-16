@@ -43,6 +43,7 @@ type Config struct {
 	MaxTimeJob             int                       `json:"maxtime_job"`
 	Recursion              bool                      `json:"recursion"`
 	RecursionDepth         int                       `json:"recursion_depth"`
+	UserAgents             []string                  `json:"useragents"`
 }
 
 type InputProviderConfig struct {
@@ -83,5 +84,6 @@ func NewConfig(ctx context.Context) Config {
 	conf.MaxTimeJob = 0
 	conf.Recursion = false
 	conf.RecursionDepth = 0
+	conf.UserAgents = make([]string, 0)
 	return conf
 }
